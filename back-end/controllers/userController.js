@@ -2,6 +2,8 @@ const User = require('../models/User'); // Importer le modèle utilisateur
 const bcrypt = require('bcrypt'); // Pour crypter le mot de passe par hachage
 const jwt = require('jsonwebtoken'); // Pour pouvoir créer et vérifier les tokens d'authentification
 
+require("dotenv").config();
+
 // Fonction pour s'inscrire
 const signUp = (req, res, next) => {
     bcrypt.hash(req.body.password, 10)
@@ -18,7 +20,7 @@ const signUp = (req, res, next) => {
 };
 
 // Fonction pour se connecter
-const logIn = (req, res, next) => {
+const logIn = (req, res) => {
     User.findOne({ email: req.body.email })
         .then(user => {
             if (!user) {
@@ -33,7 +35,7 @@ const logIn = (req, res, next) => {
                         userId: user._id,
                         token: jwt.sign(
                             { userId: user._id },
-                            'RANDOM_TOKEN_SECRET',
+                            process.env.JWT_SECRET,
                             { expiresIn: '24h' }
                         )
                     });

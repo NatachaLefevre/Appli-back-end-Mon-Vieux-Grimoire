@@ -1,5 +1,6 @@
 const Book = require('../models/Book'); // Importation du modèle Book
 
+
 // Récupérer tous les livres
 exports.getAllBooks = async (req, res) => {
     try {
@@ -11,15 +12,26 @@ exports.getAllBooks = async (req, res) => {
 };
 
 // Ajouter un nouveau livre
-exports.addBook = async (req, res) => {
-    const { title, author, year, genre, imageUrl, userId } = req.body;
-    const book = new Book({ title, author, year, genre, imageUrl, userId }); // Créer un nouveau livre
-    try {
-        await book.save(); // Sauvegarder le livre dans la base de données
-        res.status(201).json(book); // Retourner le livre créé
-    } catch (err) {
-        res.status(500).json({ message: 'Erreur lors de la création du livre' }); // Gestion des erreurs
-    }
+exports.addBook = (req, res) => {
+    const bookObject = {
+        userId: req.body.userId, // Il vient de votre corps de requête
+        title: req.body.title,
+        author: req.body.author,
+        year: req.body.year,
+        genre: req.body.genre,
+        ratings: [], // Ici, vous pouvez initialiser un tableau de notations vide
+        imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}` // URL de l'image mise à jour
+    };
+
+    const book = new Book(bookObject); // Créer une instance du modèle avec les données
+
+    book.save()
+        .then(() => {
+            res.status(201).json({ message: 'Livre enregistré !' });
+        })
+        .catch(error => {
+            res.status(400).json({ error });
+        });
 };
 
 // Récupérer un livre par ID
@@ -34,5 +46,3 @@ exports.getOneBook = async (req, res) => {
         res.status(500).json({ message: 'Erreur lors de la récupération du livre' }); // Gestion des erreurs
     }
 };
-
-// Vous pouvez également ajouter les méthodes pour modifier et supprimer un livre ici

@@ -1,5 +1,7 @@
 // Pour obliger l'user à entrer une clé d'authentification
 
+require("dotenv").config();
+
 const jwt = require('jsonwebtoken');
 
 module.exports = (req, res, next) => {
@@ -10,7 +12,7 @@ module.exports = (req, res, next) => {
         }
         
         const token = authHeader.split(' ')[1];
-        const decodedToken = jwt.verify(token, 'RANDOM_TOKEN_SECRET');
+        const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
         const userId = decodedToken.userId;
         
         req.auth = {

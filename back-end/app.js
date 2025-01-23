@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 
 const app = express();
+const path = require('path');
 
 // Routes vers les livres et les utilisateurs
 const userRoutes = require('./routes/userRoutes');
@@ -20,6 +21,9 @@ app.use(express.json());
 mongoose.connect('mongodb://127.0.0.1:27017/bibliotheque')
     .then(() => console.log('MongoDB connected'))
     .catch(err => console.error(err));
+
+// À placer juste au-dessus des routes
+app.use('/images', express.static(path.join(__dirname, 'images')));
 
 // Intégration des routes
 app.use('/api/auth', userRoutes);

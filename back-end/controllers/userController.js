@@ -1,7 +1,6 @@
 const User = require('../models/User'); // Importer le modèle utilisateur
 const bcrypt = require('bcrypt'); // Pour crypter le mot de passe par hachage
 const jwt = require('jsonwebtoken'); // Pour pouvoir créer et vérifier les tokens d'authentification
-
 require("dotenv").config();
 
 // Fonction pour s'inscrire
@@ -21,8 +20,10 @@ const signUp = (req, res, next) => {
 
 // Fonction pour se connecter
 const logIn = (req, res) => {
+    console.log("Tentative de connexion pour l'email:", req.body.email); // Log de l'email
     User.findOne({ email: req.body.email })
         .then(user => {
+            console.log("Utilisateur trouvé :", user); // Log de l'utilisateur trouvé
             if (!user) {
                 return res.status(401).json({ message: 'Paire login/mot de passe incorrecte' });
             }
@@ -40,9 +41,15 @@ const logIn = (req, res) => {
                         )
                     });
                 })
-                .catch(error => res.status(500).json({ error }));
+                .catch(error => {
+                    console.error("Erreur de comparaison des mots de passe :", error); // Log d'erreur
+                    res.status(500).json({ error });
+                });
         })
-        .catch(error => res.status(500).json({ error }));
+        .catch(error => {
+            console.error("Erreur lors de la recherche de l'utilisateur :", error); // Log d'erreur
+            res.status(500).json({ error });
+        });
 };
 
-module.exports = { signUp, logIn }; //module.exports remplace l'export de chaque fonction
+module.exports = { signUp, logIn }; // Exportation des fonctions

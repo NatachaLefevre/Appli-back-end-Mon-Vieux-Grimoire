@@ -32,6 +32,7 @@ app.use('/api/books', bookRoutes);
 // Gestion des erreurs
 app.use((err, req, res, next) => {
     console.error(err.stack);
+    console.error(err)
     res.status(500).send('Quelque chose s\'est mal passé !');
 });
 

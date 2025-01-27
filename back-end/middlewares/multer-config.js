@@ -50,8 +50,8 @@ const imageUploader = async (req, res, next) => {
 // Exportation de la configuration multer avec le middleware d'optimisation d'image
 module.exports = {
   upload: multer({
-    storage: storage,
-    fileFilter: fileFilter // Ajout du filtre
-  }).single('file'), // Pour indiquer que le fichier provient du champ du formulaire nommé 'file'
-  imageUploader // Exporte également le middleware d'optimisation d'image
+      storage: storage,
+      fileFilter: fileFilter // Ajout du filtre
+  }).single('image'), // Correspond au paramètre image dans le formulaire (champ image)
+  imageUploader // Exportation du middleware d'optimisation d'image
 };

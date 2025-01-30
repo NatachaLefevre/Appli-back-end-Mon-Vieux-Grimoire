@@ -3,55 +3,92 @@ const multer = require('multer');
 const sharp = require('sharp');
 const path = require('path');
 
-// Dictionnaire des types MIME pour mapper les extensions
+
+// DICTIONNAIRE DES TYPES MIME POUR MAPPER LES EXTENSIONS
+
 const MIME_TYPES = {
   'image/jpg': 'jpg',
   'image/jpeg': 'jpg',
   'image/png': 'png'
 };
 
-// Configuration de multer pour stocker les fichiers
-const storage = multer.memoryStorage(); // Utiliser la mémoire pour traiter l'image avant de l'enregistrer
+// CONFIGURATION DE MULTER POUR STOCKER LES FICHIERS
 
-// Filtre de validation des types de fichiers
+const storage = multer.memoryStorage();
+// Utiliser la mémoire pour traiter l'image avant de l'enregistrer
+
+
+// FILTRE DE VALIDATION DES TYPES DE FICHIERS
+
 const fileFilter = (req, file, callback) => {
+
   if (MIME_TYPES[file.mimetype]) {
-    callback(null, true); // Accepte le fichier
+    // Accepte le fichier
+    callback(null, true);
+
   } else {
-    callback(new Error('Type de fichier non supporté'), false); // Rejette le fichier
+    // Rejette le fichier
+    callback(new Error('Type de fichier non supporté'), false);
   }
 };
 
-// Middleware pour traiter et optimiser l'image
+
+// MIDDLEWARE POUR TRAITER ET OPTIMISER L'IMAGE
+
 const imageUploader = async (req, res, next) => {
+
   try {
     if (!req.file) {
-      return next(); // Si pas de fichier, passer au middleware suivant
+      // Si pas de fichier, passer au middleware suivant
+      return next();
     }
 
     const filename = `${Date.now()}-${req.file.originalname.split(' ').join('_')}`;
 
-    // Utilise sharp pour traiter l'image
+    // Utiliser sharp pour traiter l'image
     await sharp(req.file.buffer)
-      .resize(206, 260) // Redimensionne l'image à 206 pixels de large et 260 pixels de haut
-      .toFormat('jpeg', { mozjpeg: true }) // Convertit à JPEG avec compression
-      .jpeg({ quality: 80 }) // Ajuste la qualité
-      .toFile(path.join(__dirname, '../images', filename)); // Enregistrez l'image finale
 
-    // Ajoutez le nom du fichier à req pour l'utiliser plus tard
+      // Redimensionne l'image à 206 pixels de large et 260 pixels de haut
+      .resize(206, 260)
+
+      // Convertit à JPEG avec compression
+      .toFormat('jpeg', { mozjpeg: true })
+
+      // Ajuste la qualité
+      .jpeg({ quality: 80 })
+
+      // Enregistre l'image finale
+      .toFile(path.join(__dirname, '../images', filename));
+
+    // Ajouter le nom du fichier à req pour l'utiliser plus tard
     req.file.filename = filename;
 
-    next(); // Passez au middleware suivant
+    // Passer au middleware suivant
+    next();
   } catch (error) {
+
     return res.status(500).json({ error: 'Erreur lors de l\'optimisation de l\'image.' });
   }
 };
 
-// Exportation de la configuration multer avec le middleware d'optimisation d'image
+
+// EXPORTATION DE LA CONFIGURATION MULTER AVEC LE MIDDLEWARE D'OPTIMISATION D'IMAGE
+
 module.exports = {
+
   upload: multer({
-      storage: storage,
-      fileFilter: fileFilter // Ajout du filtre
-  }).single('image'), // Correspond au paramètre image dans le formulaire (champ image)
-  imageUploader // Exportation du middleware d'optimisation d'image
+
+    storage: storage,
+    // Ajout du filtre
+    fileFilter: fileFilter,
+
+    // Limite la taille à 2 Mo (2 * 1024 * 1024 octets)
+    limits: { fileSize: 2 * 1024 * 1024 }
+
+  })
+    // Correspond au paramètre image dans le formulaire (champ image)
+    .single('image'),
+
+  // Exportation du middleware d'optimisation d'image
+  imageUploader
 };

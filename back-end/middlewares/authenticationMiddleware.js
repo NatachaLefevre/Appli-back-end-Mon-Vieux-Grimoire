@@ -10,19 +10,19 @@ module.exports = (req, res, next) => {
         if (!authHeader) {
             return res.status(401).json({ error: 'Token manquant' });
         }
-        
+
         const token = authHeader.split(' ')[1];
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
         const userId = decodedToken.userId;
-        
+
         req.auth = {
             userId: userId
         };
         next();
+        
     } catch (error) {
-        console.error("Erreur d'authentification:", error); // Ajout d'un log pour débogage
+        // Ajout d'un log pour débogage
+        console.error("Erreur d'authentification:", error);
         res.status(401).json({ error });
     }
 };
-
-// module.exports = auth;

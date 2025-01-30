@@ -5,40 +5,51 @@ const cors = require('cors');
 const app = express();
 const path = require('path');
 
-// Routes vers les livres et les utilisateurs
+
+// ROUTES VERS LES LIVRES ET LES UTILISATEURS
 const userRoutes = require('./routes/userRoutes');
 const bookRoutes = require('./routes/bookRoutes');
 
-// Middleware pour autoriser CORS
+
+// MIDDLEWARE POUR AUTORISER CORS
 app.use(cors({
-    origin: 'http://localhost:3000' // Autorise uniquement les requêtes provenant de ce port
+    // Autorise uniquement les requêtes provenant de ce port
+    origin: 'http://localhost:3000' 
 }));
 
-// Middleware pour traiter les requêtes JSON
+
+// MIDDLEWARE POUR TRAITER LES REQUÊTES JSON
 app.use(express.json());
 
-// Connexion à MongoDB
+
+// CONNEXION À MONGODB
 mongoose.connect('mongodb://127.0.0.1:27017/bibliotheque')
     .then(() => console.log('MongoDB connected'))
     .catch(err => console.error(err));
 
-// À placer juste au-dessus des routes
+
+// À PLACER JUSTE AU-DESSUS DES ROUTES
 app.use('/images', express.static(path.join(__dirname, 'images')));
 
-// Intégration des routes
+
+// INTÉGRATION DES ROUTES
 app.use('/api/auth', userRoutes);
 app.use('/api/books', bookRoutes);
 
-// Gestion des erreurs
+
+// GESTION DES ERREURS
 app.use((err, req, res, next) => {
     console.error(err.stack);
     console.error(err)
     res.status(500).send('Quelque chose s\'est mal passé !');
 });
 
-// Routes non trouvées
+
+// ROUTES NON TROUVÉES
 app.use((req, res, next) => {
     res.status(404).send('404 Not Found');
 });
 
-module.exports = app; // Exporte l'application Express pour l'utiliser dans server.js
+
+// EXPORTE L'APPLICATION EXPRESS POUR L'UTILISER DANS SERVER.JS
+module.exports = app; 

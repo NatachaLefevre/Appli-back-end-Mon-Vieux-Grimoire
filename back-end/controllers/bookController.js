@@ -37,9 +37,9 @@ exports.addBook = (req, res) => {
     let bookObject;
 
     try {
-         // Essayer de parser le livre
+        // Essayer de parser le livre
         bookObject = JSON.parse(req.body.book);
-        console.log("Objet livre reçu :", bookObject); 
+        console.log("Objet livre reçu :", bookObject);
         // Log de l'objet livre
 
     } catch (error) {
@@ -54,7 +54,7 @@ exports.addBook = (req, res) => {
     const book = new Book({
         ...bookObject,
         userId: req.auth.userId,
-        imageUrl: req.file ? `${req.protocol}://${req.get('host')}/images/${req.file.filename}` : null 
+        imageUrl: req.file ? `${req.protocol}://${req.get('host')}/images/${req.file.filename}` : null
         // // URL de l'image mise à jour
     });
 
@@ -74,11 +74,11 @@ exports.addBook = (req, res) => {
 exports.getOneBook = async (req, res) => {
 
     try {
-         // Trouver le livre par ID
+        // Trouver le livre par ID
         const book = await Book.findById(req.params.id);
 
         if (!book) {
-             // Si le livre n'existe pas
+            // Si le livre n'existe pas
             return res.status(404).json({ message: "Livre non trouvé" });
         }
         // Retourner le livre trouvé
@@ -110,15 +110,49 @@ exports.modifyBook = async (req, res) => {
 
         if (book.userId != req.auth.userId) {
 
-             // Changement au code 403
+            // Changement au code 403
             return res.status(403).json({ message: "Non autorisé" });
         }
 
-        await Book.updateOne({ _id: req.params.id }, { ...bookObject, _id: req.params.id });
-        res.status(200).json({ message: "Livre modifié!" });
+        //Si nouvelle image, après modif d'un livre
+        if (req.file) {
 
-    } catch (error) {
-        res.status(400).json({ error });
+            // Suppression de l'ancienne image (éco-conception)
+            const filename = book.imageUrl.split('/images/')[1];
+
+            fs.unlink(`images/${filename}`, async (error) => {
+
+                if (error) {
+                    return res.status(500).json({ error: "Erreur lors de la suppression de l'image" });
+                }
+                console.log(`L'ancienne image ${filename} a été supprimée avec succès.`);
+                
+                bookObject.imageUrl = `${req.protocol}://${req.get("host")}/images/${req.file.filename}`;
+
+                try {
+                    await Book.updateOne({ _id: req.params.id }, { ...bookObject, _id: req.params.id });
+
+                    return res.status(200).json({ message: "Livre modifié" });
+                }
+                catch (error) {
+                    return res.status(500).json({ error });
+                }
+            });
+        }
+
+        else {
+            try {
+                await Book.updateOne({ _id: req.params.id }, { ...bookObject, _id: req.params.id });
+
+                return res.status(200).json({ message: "Livre modifié" });
+            }
+            catch (error) {
+                return res.status(500).json({ error });
+            }
+        }
+    }
+    catch (error) {
+        return res.status(400).json({ error });
     }
 };
 

@@ -7,9 +7,10 @@ const path = require('path');
 // DICTIONNAIRE DES TYPES MIME POUR MAPPER LES EXTENSIONS
 
 const MIME_TYPES = {
-  'image/jpg': 'jpg',
-  'image/jpeg': 'jpg',
-  'image/png': 'png'
+  'image/jpg': 'webp',
+  'image/jpeg': 'webp',
+  'image/webp': 'webp',
+  'image/png': 'webp'
 };
 
 // CONFIGURATION DE MULTER POUR STOCKER LES FICHIERS
@@ -36,27 +37,27 @@ const fileFilter = (req, file, callback) => {
 // MIDDLEWARE POUR TRAITER ET OPTIMISER L'IMAGE
 
 const imageUploader = async (req, res, next) => {
-
   try {
     if (!req.file) {
       // Si pas de fichier, passer au middleware suivant
       return next();
     }
 
-    const filename = `${Date.now()}-${req.file.originalname.split(' ').join('_')}`;
+    // Vérifier l'extension pour ne traiter que les images valides
+    const validExtensions = ['.jpg', '.jpeg', '.png', '.webp'];
+    const ext = path.extname(req.file.originalname).toLowerCase();
+    if (!validExtensions.includes(ext)) {
+      return res.status(400).json({ error: 'Format de fichier non supporté. Utilisez JPG ou PNG.' });
+    }
+
+    const filename = `${Date.now()}-${req.file.originalname.split(' ').join('_').replace(ext, '.webp')}`;
 
     // Utiliser sharp pour traiter l'image
     await sharp(req.file.buffer)
-
       // Redimensionne l'image à 206 pixels de large et 260 pixels de haut
       .resize(206, 260)
-
-      // Convertit à JPEG avec compression
-      .toFormat('jpeg', { mozjpeg: true })
-
-      // Ajuste la qualité
-      .jpeg({ quality: 80 })
-
+      // Convertit à WebP
+      .toFormat('webp', { quality: 80 })
       // Enregistre l'image finale
       .toFile(path.join(__dirname, '../images', filename));
 
@@ -66,7 +67,6 @@ const imageUploader = async (req, res, next) => {
     // Passer au middleware suivant
     next();
   } catch (error) {
-
     return res.status(500).json({ error: 'Erreur lors de l\'optimisation de l\'image.' });
   }
 };

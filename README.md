@@ -1,0 +1,1 @@
+Création d'une API, afin de permettre aux utilisateurs de noter des livres, de s'inscrire et d'ajouter des livres de leur choix. Mon travail sur ce site a été exclusivement back-end, avec notamment la mise en place d'un système d'authentification sécurisé.
